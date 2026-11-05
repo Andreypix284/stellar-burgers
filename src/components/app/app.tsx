@@ -15,10 +15,13 @@ import {
   Profile,
   ProfileOrders,
   NotFound404,
+  OrderDetailsPage,
+  IngredientDetailsPage,
 } from '@pages';
 import { useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom'; // <--- Добавили useNavigate
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
+import { fetchIngredients } from '../../services/slices/ingredientsSlice';
 import { checkUserAuth } from '../../services/slices/userSlice';
 import { useSelector, useDispatch } from '../../services/store';
 
@@ -28,18 +31,22 @@ import styles from './app.module.css';
 
 const App = (): React.JSX.Element => {
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // <--- Хук для навигации
+  const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthChecked } = useSelector((state) => state.user);
+
+  // Получаем фон (если мы перешли на модалку)
+  const background = (location.state as { background?: Location })?.background;
 
   useEffect(() => {
     void dispatch(checkUserAuth());
+    void dispatch(fetchIngredients());
   }, [dispatch]);
 
   if (!isAuthChecked) {
     return <div className={styles.app} />;
   }
 
-  // Функция закрытия модалки
   const closeModal = (): void => {
     void navigate(-1);
   };
@@ -47,30 +54,13 @@ const App = (): React.JSX.Element => {
   return (
     <div className={styles.app}>
       <AppHeader />
-      <Routes>
+
+      {/* Основные маршруты (фон) */}
+      <Routes location={background ?? location}>
         <Route path="/" element={<ConstructorPage />} />
         <Route path="/feed" element={<Feed />} />
-
-        <Route
-          path="/feed/:number"
-          element={
-            <Modal title="Информация о заказе" onClose={closeModal}>
-              {' '}
-              {/* <--- Заменили */}
-              <OrderInfo />
-            </Modal>
-          }
-        />
-        <Route
-          path="/ingredients/:id"
-          element={
-            <Modal title="Детали ингредиента" onClose={closeModal}>
-              {' '}
-              {/* <--- Заменили */}
-              <IngredientDetails />
-            </Modal>
-          }
-        />
+        <Route path="/feed/:number" element={<OrderDetailsPage />} />
+        <Route path="/ingredients/:id" element={<IngredientDetailsPage />} />
 
         {/* Публичные страницы (только для гостей) */}
         <Route
@@ -123,21 +113,49 @@ const App = (): React.JSX.Element => {
             </ProtectedRoute>
           }
         />
+
+        {/* Отдельная страница заказа (если нет фона) */}
         <Route
           path="/profile/orders/:number"
           element={
             <ProtectedRoute>
-              <Modal title="Информация о заказе" onClose={closeModal}>
-                {' '}
-                {/* <--- Заменили */}
-                <OrderInfo />
-              </Modal>
+              <OrderDetailsPage />
             </ProtectedRoute>
           }
         />
 
         <Route path="*" element={<NotFound404 />} />
       </Routes>
+
+      {/* Модалки (открываются поверх фона) */}
+      {background && (
+        <Routes>
+          <Route
+            path="/feed/:number"
+            element={
+              <Modal title="" onClose={closeModal}>
+                <OrderInfo />
+              </Modal>
+            }
+          />
+          <Route
+            path="/ingredients/:id"
+            element={
+              <Modal title="Детали ингредиента" onClose={closeModal}>
+                <IngredientDetails />
+              </Modal>
+            }
+          />
+          <Route
+            path="/profile/orders/:number"
+            element={
+              <Modal title="" onClose={closeModal}>
+                <OrderInfo />
+              </Modal>
+            }
+          />
+        </Routes>
+      )}
     </div>
   );
 };

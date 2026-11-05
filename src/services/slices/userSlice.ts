@@ -5,6 +5,7 @@ import {
   registerUserApi,
   getUserApi,
   logoutApi,
+  updateUserApi,
   type TLoginData,
   type TRegisterData,
 } from '../../utils/burger-api';
@@ -64,6 +65,15 @@ export const checkUserAuth = createAsyncThunk(
   }
 );
 
+// НОВЫЙ ЭКШЕН ДЛЯ ОБНОВЛЕНИЯ ПРОФИЛЯ
+export const updateUser = createAsyncThunk(
+  'user/update',
+  async (data: { name: string; email: string; password?: string }) => {
+    const res = await updateUserApi(data);
+    return res.user;
+  }
+);
+
 export const userSlice = createSlice({
   name: 'user',
   initialState,
@@ -100,6 +110,19 @@ export const userSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
+      })
+      // ОБРАБОТКА ОБНОВЛЕНИЯ ПРОФИЛЯ
+      .addCase(updateUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message ?? 'Ошибка обновления профиля';
       })
       .addCase(checkUserAuth.fulfilled, (state) => {
         state.isAuthChecked = true;

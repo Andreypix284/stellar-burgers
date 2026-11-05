@@ -14,7 +14,7 @@ export const BurgerConstructor = (): React.JSX.Element | null => {
 
   // Достаем всё из Redux
   const { bun, ingredients, orderRequest, orderModalData } = useSelector(
-    (state: RootState) => state.constructor
+    (state: RootState) => state.burgerConstructor
   );
 
   // Собираем в один объект для UI, так как он этого ждет
