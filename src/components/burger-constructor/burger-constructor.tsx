@@ -12,12 +12,10 @@ export const BurgerConstructor = (): React.JSX.Element | null => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Достаем всё из Redux
   const { bun, ingredients, orderRequest, orderModalData } = useSelector(
     (state: RootState) => state.burgerConstructor
   );
 
-  // Собираем в один объект для UI, так как он этого ждет
   const constructorItems = {
     bun: bun ?? null,
     ingredients: ingredients || [],
@@ -27,35 +25,29 @@ export const BurgerConstructor = (): React.JSX.Element | null => {
   const onOrderClick = (): void => {
     if (!constructorItems.bun || orderRequest) return;
 
-    // Если не авторизован — на логин
     if (!user) {
       void navigate('/login');
       return;
     }
 
-    // Собираем ID ингредиентов для заказа
     const ingredientsId = [
       constructorItems.bun._id,
       ...constructorItems.ingredients.map((item: TConstructorIngredient) => item._id),
-      constructorItems.bun._id, // Булка в начале и в конце
+      constructorItems.bun._id,
     ];
 
-    // Отправляем заказ
     void dispatch(createOrder(ingredientsId));
   };
 
   const closeOrderModal = (): void => {
-    dispatch(clearConstructor(undefined));
+    dispatch(clearConstructor(undefined)); // Закрывает модалку (orderModalData = null)
   };
 
   const price = useMemo(
     () =>
-      (constructorItems.bun ? constructorItems.bun.price * 2 : 0) +
-      constructorItems.ingredients.reduce(
-        (s: number, v: TConstructorIngredient) => s + v.price,
-        0
-      ),
-    [constructorItems]
+      (bun ? bun.price * 2 : 0) +
+      ingredients.reduce((s: number, v: TConstructorIngredient) => s + v.price, 0),
+    [bun, ingredients] // ЗАВИСИМОСТИ ОТ ЗНАЧЕНИЙ ИЗ REDUX
   );
 
   return (

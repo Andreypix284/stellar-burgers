@@ -1,8 +1,9 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, nanoid } from '@reduxjs/toolkit';
 
 import { orderBurgerApi } from '../../utils/burger-api';
 
-import type { TConstructorIngredient, TOrder } from '../../utils/types';
+import type { TConstructorIngredient, TIngredient, TOrder } from '../../utils/types';
+import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type TConstructorSliceState = {
   bun: TConstructorIngredient | null;
@@ -32,34 +33,31 @@ export const constructorSlice = createSlice({
   name: 'constructor',
   initialState,
   reducers: {
-    addIngredient: (state, action) => {
-      // Генерируем ID прямо здесь, но безопасно
-      const uniqueId = `${Date.now()}-${Math.random()}`;
-      const ingredient = action.payload as TConstructorIngredient;
-
-      if (ingredient.type === 'bun') {
-        state.bun = { ...ingredient, id: uniqueId };
-      } else {
-        // Самая главная защита
-        if (!Array.isArray(state.ingredients)) {
-          state.ingredients = [];
+    addIngredient: {
+      prepare: (ingredient: TIngredient) => {
+        const id = nanoid();
+        return { payload: { ...ingredient, id } };
+      },
+      reducer: (state, action: PayloadAction<TConstructorIngredient>) => {
+        const ingredient = action.payload;
+        if (ingredient.type === 'bun') {
+          state.bun = ingredient;
+        } else {
+          state.ingredients.push(ingredient);
         }
-        state.ingredients.push({ ...ingredient, id: uniqueId });
-      }
+      },
     },
-    removeIngredient: (state, action) => {
+    removeIngredient: (state, action: PayloadAction<string>) => {
       state.ingredients = state.ingredients.filter((item) => item.id !== action.payload);
     },
     clearConstructor: (state) => {
-      state.bun = null;
-      state.ingredients = [];
       state.orderModalData = null;
     },
-    moveIngredient: (state, action) => {
-      const { dragIndex, hoverIndex } = action.payload as {
-        dragIndex: number;
-        hoverIndex: number;
-      };
+    moveIngredient: (
+      state,
+      action: PayloadAction<{ dragIndex: number; hoverIndex: number }>
+    ) => {
+      const { dragIndex, hoverIndex } = action.payload;
       const dragItem = state.ingredients[dragIndex];
       if (dragItem) {
         state.ingredients.splice(dragIndex, 1);
@@ -76,6 +74,8 @@ export const constructorSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, action) => {
         state.orderRequest = false;
         state.orderModalData = action.payload;
+        state.bun = null;
+        state.ingredients = [];
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.orderRequest = false;

@@ -14,6 +14,7 @@ export const BurgerIngredient = ({
   const dispatch = useDispatch();
 
   const handleAdd = (): void => {
+    // ID генерируется в prepare (в слайсе)
     dispatch(addIngredient(ingredient));
   };
 

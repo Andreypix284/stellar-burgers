@@ -1,6 +1,5 @@
 import { RegisterUI } from '@ui-pages';
-import { type SyntheticEvent, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { type SyntheticEvent, useState } from 'react';
 
 import { registerUser } from '../../services/slices/userSlice';
 import { useSelector, useDispatch } from '../../services/store';
@@ -13,21 +12,11 @@ export const Register = (): React.JSX.Element => {
   const [password, setPassword] = useState('');
 
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
-  // Достаем состояние из Redux
-  const { error, user } = useSelector((state: RootState) => state.user);
-
-  // Если регистрация прошла успешно (user появился), редиректим на главную
-  useEffect(() => {
-    if (user) {
-      void navigate('/', { replace: true });
-    }
-  }, [user, navigate]);
+  const { error } = useSelector((state: RootState) => state.user);
 
   const handleSubmit = (e: SyntheticEvent): void => {
     e.preventDefault();
-    // Отправляем данные на сервер через Redux
     void dispatch(registerUser({ name: userName, email, password }));
   };
 

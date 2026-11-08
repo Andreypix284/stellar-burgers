@@ -29,7 +29,10 @@ export const ProtectedRoute = ({
 
   // Если страница только для НЕавторизованных (логин, регистрация)
   if (onlyUnAuth && user) {
-    return <Navigate to="/" replace />;
+    // Берем маршрут, откуда пришел пользователь (если есть), иначе на главную
+    const from =
+      (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/';
+    return <Navigate to={from} replace />;
   }
 
   return children;
