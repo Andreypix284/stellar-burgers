@@ -11,11 +11,6 @@ type TServerResponse<T = unknown> = {
   success: boolean;
 } & T;
 
-/**
- * The API signals failure with a JSON payload rather than an HTTP error, so the
- * payload is wrapped in a real Error before rejecting. The original body is
- * kept in `cause` for debugging.
- */
 const toApiError = (payload: unknown): Error => {
   const message =
     typeof payload === 'object' &&
@@ -104,12 +99,15 @@ export const getFeedsApi = (): Promise<TFeedsResponse> =>
 export const getOrdersApi = (): Promise<TOrder[]> =>
   fetchWithRefresh<TFeedsResponse>(`${URL}/orders`, {
     method: 'GET',
+    cache: 'no-store', // <--- ДОБАВЛЕНО, чтобы не было кеша
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
       authorization: getCookie('accessToken'),
     } as HeadersInit,
   }).then((data) => {
-    if (data?.success) return data.orders;
+    if (data?.success && Array.isArray(data.orders)) {
+      return data.orders; // <--- Возвращаем массив заказов
+    }
     return Promise.reject(toApiError(data));
   });
 

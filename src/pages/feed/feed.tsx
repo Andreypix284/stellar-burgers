@@ -1,17 +1,27 @@
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
+import { useEffect } from 'react';
 
-import type { TOrder } from '@utils-types';
+import { fetchFeeds } from '../../services/slices/feedSlice';
+import { useSelector, useDispatch } from '../../services/store';
+
+import type { RootState } from '../../services/store';
 
 export const Feed = (): React.JSX.Element => {
-  // TODO: Взять переменную из стора
-  const orders: TOrder[] = [];
+  const dispatch = useDispatch();
+  const { orders, isLoading } = useSelector((state: RootState) => state.feed);
 
+  // Загружаем ленту при первом рендере
+  useEffect(() => {
+    void dispatch(fetchFeeds());
+  }, [dispatch]);
+
+  // Функция для кнопки «Обновить»
   const handleGetFeeds = (): void => {
-    // TODO: Запросить ленту заказов
+    void dispatch(fetchFeeds());
   };
 
-  if (!orders.length) {
+  if (isLoading && !orders.length) {
     return <Preloader />;
   }
 

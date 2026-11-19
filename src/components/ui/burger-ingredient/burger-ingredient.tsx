@@ -3,19 +3,18 @@ import {
   CurrencyIcon,
   AddButton,
 } from '@krgaa/react-developer-burger-ui-components';
-import { memo } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { TBurgerIngredientUIProps } from './type';
 
 import styles from './burger-ingredient.module.css';
 
-export const BurgerIngredientUI = memo(function BurgerIngredientUI({
+export const BurgerIngredientUI = ({
   ingredient,
   count,
   handleAdd,
   locationState,
-}: TBurgerIngredientUIProps): React.JSX.Element {
+}: TBurgerIngredientUIProps): React.JSX.Element => {
   const { image, price, name, _id } = ingredient;
 
   return (
@@ -36,4 +35,4 @@ export const BurgerIngredientUI = memo(function BurgerIngredientUI({
       />
     </li>
   );
-});
+};
