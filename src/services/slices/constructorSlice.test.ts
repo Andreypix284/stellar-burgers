@@ -93,7 +93,7 @@ describe('Тестирование редьюсера constructorSlice', () => {
       ...initialState,
       orderModalData: mockOrder,
     };
-    const action = clearConstructor(undefined);
+    const action = clearConstructor();
     const result = constructorReducer(stateWithModal, action);
     expect(result.orderModalData).toBeNull();
   });

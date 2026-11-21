@@ -1,5 +1,6 @@
 import { fetchIngredients, ingredientsReducer } from './ingredientsSlice';
 
+import type { TIngredient } from '../../utils/types';
 import type { TIngredientsState } from './ingredientsSlice';
 
 describe('Тестирование редьюсера ingredientsSlice', () => {
@@ -7,6 +8,35 @@ describe('Тестирование редьюсера ingredientsSlice', () => {
     ingredients: [],
     isLoading: false,
     error: null,
+  };
+
+  // Полные моки ингредиентов, соответствующие типу TIngredient
+  const mockBun: TIngredient = {
+    _id: '1',
+    name: 'Булка',
+    type: 'bun',
+    price: 100,
+    proteins: 10,
+    fat: 10,
+    carbohydrates: 10,
+    calories: 100,
+    image: 'image.png',
+    image_mobile: 'image_mobile.png',
+    image_large: 'image_large.png',
+  };
+
+  const mockMain: TIngredient = {
+    _id: '2',
+    name: 'Начинка',
+    type: 'main',
+    price: 200,
+    proteins: 20,
+    fat: 20,
+    carbohydrates: 20,
+    calories: 200,
+    image: 'image.png',
+    image_mobile: 'image_mobile.png',
+    image_large: 'image_large.png',
   };
 
   test('должен вернуть начальное состояние при неизвестном экшене', () => {
@@ -22,10 +52,7 @@ describe('Тестирование редьюсера ingredientsSlice', () => {
   });
 
   test('должен обработать экшен fetchIngredients.fulfilled', () => {
-    const mockIngredients = [
-      { _id: '1', name: 'Булка', type: 'bun', price: 100 },
-      { _id: '2', name: 'Начинка', type: 'main', price: 200 },
-    ];
+    const mockIngredients = [mockBun, mockMain];
     const action = {
       type: fetchIngredients.fulfilled.type,
       payload: mockIngredients,

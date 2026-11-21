@@ -8,9 +8,12 @@ const __dirname = path.dirname(__filename);
 
 test.describe('Страница конструктора бургера', () => {
   test.beforeEach(async ({ page }) => {
-    // Перехватываем запросы с помощью HAR-файла
     await page.routeFromHAR(path.join(__dirname, 'hars', 'ingredients.har'), {
       url: '**/api/ingredients',
+      update: false,
+    });
+    await page.routeFromHAR(path.join(__dirname, 'hars', 'user.har'), {
+      url: '**/api/auth/user',
       update: false,
     });
 
@@ -22,37 +25,40 @@ test.describe('Страница конструктора бургера', () => 
     const bunCard = page.locator('li', { hasText: 'Краторная булка N-200i' });
     await bunCard.getByText('Добавить').click();
 
-    await expect(page.getByText('Краторная булка N-200i (верх)')).toBeVisible();
-    await expect(page.getByText('Краторная булка N-200i (низ)')).toBeVisible();
+    const constructor = page.getByTestId('constructor');
+    await expect(constructor.getByText('Краторная булка N-200i (верх)')).toBeVisible();
+    await expect(constructor.getByText('Краторная булка N-200i (низ)')).toBeVisible();
 
     const mainCard = page.locator('li', {
       hasText: 'Биокотлета из марсианской Магнолии',
     });
     await mainCard.getByText('Добавить').click();
 
-    const constructorSection = page.locator('section', {
-      has: page.getByRole('button', { name: 'Оформить заказ' }),
-    });
-
     await expect(
-      constructorSection.getByText('Биокотлета из марсианской Магнолии')
+      constructor.getByText('Биокотлета из марсианской Магнолии')
     ).toBeVisible();
   });
 
   test('Работа модальных окон ингредиента', async ({ page }) => {
     await page.getByText('Краторная булка N-200i').click();
-    await expect(page.getByText('Детали ингредиента')).toBeVisible();
 
-    // Дополнительная проверка: в модалке именно та булка
-    await expect(page.getByText('Краторная булка N-200i').last()).toBeVisible();
+    const modal = page.getByTestId('modal');
+    await expect(modal).toBeVisible();
+    await expect(modal.getByText('Детали ингредиента')).toBeVisible();
+    await expect(modal.getByText('Краторная булка N-200i')).toBeVisible();
+    // Проверяем калории (значение 420 из моковых данных)
+    await expect(modal.getByText('420')).toBeVisible();
 
-    await page.getByLabel('Закрыть').click();
-    await expect(page.getByText('Детали ингредиента')).not.toBeVisible();
+    // Закрываем по крестику
+    await modal.getByTestId('modal-close').click();
+    await expect(modal).not.toBeVisible();
 
+    // Открываем снова
     await page.getByText('Краторная булка N-200i').click();
-    await expect(page.getByText('Детали ингредиента')).toBeVisible();
+    await expect(modal).toBeVisible();
 
-    await page.mouse.click(10, 10);
-    await expect(page.getByText('Детали ингредиента')).not.toBeVisible();
+    // Закрываем по клику на оверлей (в угол)
+    await page.getByTestId('modal-overlay').click({ position: { x: 10, y: 10 } });
+    await expect(modal).not.toBeVisible();
   });
 });
